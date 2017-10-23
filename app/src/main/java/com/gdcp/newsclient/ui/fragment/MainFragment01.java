@@ -14,6 +14,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.gdcp.newsclient.R;
 import com.gdcp.newsclient.adapter.NewsViewPagerAdapter;
@@ -62,7 +63,6 @@ public class MainFragment01 extends Fragment{
         if (mView==null){
             mView= LayoutInflater.from(getActivity()).inflate(R.layout.fragment_main01,container,false);
             initView(mView);
-
         }
 
         return mView;

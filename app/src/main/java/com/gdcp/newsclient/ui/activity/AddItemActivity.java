@@ -5,18 +5,18 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.support.v7.app.ActionBar;
 import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ImageView;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.gdcp.newsclient.R;
-import com.gdcp.newsclient.adapter.AddedColumnAdapter;
+import com.gdcp.newsclient.adapter.GridViewSortAdapter;
 import com.gdcp.newsclient.adapter.NotAddColumnAdapter;
 import com.gdcp.newsclient.bean.AddItem;
 import com.gdcp.newsclient.listener.ClickListener;
+import com.gdcp.newsclient.view.DragSortGridView;
 import com.gdcp.newsclient.view.MyRecyclerView;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -29,34 +29,40 @@ import butterknife.OnClick;
 
 ;
 
-public class AddItemActivity extends BaseActivity implements ClickListener{
+public class AddItemActivity extends BaseActivity implements ClickListener {
 
 
     @BindView(R.id.tv_commit)
     TextView tvCommit;
     @BindView(R.id.toolbal)
     Toolbar toolbal;
-    @BindView(R.id.addedRecyclerView)
-    MyRecyclerView addedRecyclerView;
+    /*  @BindView(R.id.addedRecyclerView)
+      MyRecyclerView addedRecyclerView;*/
+    @BindView(R.id.addedDragSortGridView)
+    DragSortGridView addedDragSortGridView;
     @BindView(R.id.notAddedRecyclerView)
     MyRecyclerView notAddedRecyclerView;
+    @BindView(R.id.scrollView)
+    ScrollView scrollView;
     private List<AddItem> addList;
     private List<AddItem> notAddList;
-    private AddedColumnAdapter addedColumnAdapter;
+    /* private AddedColumnAdapter addedColumnAdapter;*/
+    private GridViewSortAdapter addedColumnAdapter;
     private NotAddColumnAdapter notAddColumnAdapter;
 
     @Override
     protected void initData() {
-        SharedPreferences sharedPreferences=getSharedPreferences("addItemList", Context.MODE_PRIVATE);
-        String json=sharedPreferences.getString("addItemList","");
-        Gson gson=new Gson();
-        List<AddItem> addItemList=gson.fromJson(json,new TypeToken<List<AddItem>>(){}.getType());
-        for (int i = 0; i <addItemList.size() ; i++) {
-              if (addItemList.get(i).isAdded()){
-                  addList.add(addItemList.get(i));
-              }else {
-                  notAddList.add(addItemList.get(i));
-              }
+        SharedPreferences sharedPreferences = getSharedPreferences("addItemList", Context.MODE_PRIVATE);
+        String json = sharedPreferences.getString("addItemList", "");
+        Gson gson = new Gson();
+        List<AddItem> addItemList = gson.fromJson(json, new TypeToken<List<AddItem>>() {
+        }.getType());
+        for (int i = 0; i < addItemList.size(); i++) {
+            if (addItemList.get(i).isAdded()) {
+                addList.add(addItemList.get(i));
+            } else {
+                notAddList.add(addItemList.get(i));
+            }
         }
 
         addedColumnAdapter.notifyDataSetChanged();
@@ -71,15 +77,13 @@ public class AddItemActivity extends BaseActivity implements ClickListener{
     @Override
     protected void initView() {
         initToolBar();
-        addList=new ArrayList<>();
-        notAddList=new ArrayList<>();
-        addedColumnAdapter=new AddedColumnAdapter(addList,this);
-        notAddColumnAdapter=new NotAddColumnAdapter(notAddList,this);
-        GridLayoutManager gridLayoutManager=new GridLayoutManager(this,3);
-        GridLayoutManager gridLayoutManager2=new GridLayoutManager(this,3);
-        addedRecyclerView.setLayoutManager(gridLayoutManager);
-        notAddedRecyclerView.setLayoutManager(gridLayoutManager2);
-        addedRecyclerView.setAdapter(addedColumnAdapter);
+        addList = new ArrayList<>();
+        notAddList = new ArrayList<>();
+        addedColumnAdapter = new GridViewSortAdapter(addedDragSortGridView, this, addList);
+        notAddColumnAdapter = new NotAddColumnAdapter(notAddList, this);
+        GridLayoutManager gridLayoutManager = new GridLayoutManager(this, 4);
+        notAddedRecyclerView.setLayoutManager(gridLayoutManager);
+        addedDragSortGridView.setAdapter(addedColumnAdapter);
         notAddedRecyclerView.setAdapter(notAddColumnAdapter);
         addedColumnAdapter.setClickListener(this);
         notAddColumnAdapter.setClickListener(this);
@@ -117,34 +121,41 @@ public class AddItemActivity extends BaseActivity implements ClickListener{
     }
 
     private void update() {
-        SharedPreferences sharedPreferences=getSharedPreferences("addItemList", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor=sharedPreferences.edit();
-        Gson gson=new Gson();
-        List<AddItem>list=new ArrayList<>();
-        for (int i = 0; i < addList.size(); i++) {
+        SharedPreferences sharedPreferences = getSharedPreferences("addItemList", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        Gson gson = new Gson();
+        List<AddItem> list = new ArrayList<>();
+        /*for (int i = 0; i < addList.size(); i++) {
             AddItem addItem=new AddItem();
             addItem.setAdded(true);
             addItem.setTitle(addList.get(i).getTitle());
             addItem.setChannelId(addList.get(i).getChannelId());
             list.add(addItem);
+        }*/
+        for (int i = 0; i < addedColumnAdapter.getAddItemList().size(); i++) {
+            AddItem addItem = new AddItem();
+            addItem.setAdded(true);
+            addItem.setTitle(addedColumnAdapter.getAddItemList().get(i).getTitle());
+            addItem.setChannelId(addedColumnAdapter.getAddItemList().get(i).getChannelId());
+            list.add(addItem);
         }
 
         for (int i = 0; i < notAddList.size(); i++) {
-            AddItem addItem=new AddItem();
+            AddItem addItem = new AddItem();
             addItem.setAdded(false);
             addItem.setTitle(notAddList.get(i).getTitle());
             addItem.setChannelId(notAddList.get(i).getChannelId());
             list.add(addItem);
         }
-        String json=gson.toJson(list);
-        editor.putString("addItemList",json);
+        String json = gson.toJson(list);
+        editor.putString("addItemList", json);
         editor.commit();
     }
 
 
     @Override
     public void del(AddItem s, int i) {
-         //从已经添加中的项目中移除，添加到未添加中的项目
+        //从已经添加中的项目中移除，添加到未添加中的项目
         addList.remove(s);
         notAddList.add(s);
         addedColumnAdapter.notifyDataSetChanged();
@@ -159,6 +170,8 @@ public class AddItemActivity extends BaseActivity implements ClickListener{
         addedColumnAdapter.notifyDataSetChanged();
         notAddColumnAdapter.notifyDataSetChanged();
     }
+
+
 
 
 

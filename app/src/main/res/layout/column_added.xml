@@ -1,26 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:layout_marginBottom="10dp">
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/image_view"
+   >
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
-
-        <Button
+        <TextView
+            android:id="@+id/name_column"
+            android:layout_width="80dp"
+            android:layout_height="30dp"
+            android:layout_gravity="center"
+            android:background="@drawable/column_btn_bg"
+            android:gravity="center"
+            android:text="哈哈"
+           />
+        <!--<Button
             android:id="@+id/name_column"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/column_btn_bg"
-            android:text="栏目名称" />
+            android:text="栏目名称" />-->
     </RelativeLayout>
 
     <ImageView
         android:id="@+id/iv_del"
         android:layout_width="18dp"
         android:layout_height="18dp"
-        android:src="@drawable/del"
+        android:src="@drawable/delete"
         android:visibility="gone"/>
 
 </FrameLayout>

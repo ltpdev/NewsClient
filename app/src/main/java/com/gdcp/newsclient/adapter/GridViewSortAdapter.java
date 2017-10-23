@@ -13,9 +13,12 @@ import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.GridView;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.gdcp.newsclient.R;
+import com.gdcp.newsclient.bean.AddItem;
+import com.gdcp.newsclient.listener.ClickListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +28,8 @@ import java.util.List;
  */
 public class GridViewSortAdapter  extends BaseAdapter {
     private Context context;
-    private List<String>typeTitle;
+    /*private List<String>typeTitle;*/
+    private List<AddItem>addItemList;
     private List<Integer>positionList=new ArrayList<>();
     private int currentHideItemPosition= AdapterView.INVALID_POSITION;
     private int startHideItemPosition = AdapterView.INVALID_POSITION;
@@ -37,10 +41,11 @@ public class GridViewSortAdapter  extends BaseAdapter {
     private int mColsNum;
     private GridView mGridView;
     private boolean mInAnimation;
+    private boolean isShow=false;
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
-    public GridViewSortAdapter(GridView gridView, Context context, List<String> typeTitle){
+    public GridViewSortAdapter(GridView gridView, Context context, List<AddItem>addItemList){
         this.context=context;
-        this.typeTitle=typeTitle;
+        this.addItemList=addItemList;
         mHorizontalSpace = gridView.getRequestedHorizontalSpacing();
         //???
         mVerticalSpace = gridView.getRequestedHorizontalSpacing();
@@ -165,15 +170,15 @@ public class GridViewSortAdapter  extends BaseAdapter {
     }
 
     public void clear() {
-       String value=typeTitle.get(startHideItemPosition);
+       AddItem value=addItemList.get(startHideItemPosition);
         if (startHideItemPosition<currentHideItemPosition){
-            typeTitle.add(currentHideItemPosition+1,value);
-            typeTitle.remove(startHideItemPosition);
+            addItemList.add(currentHideItemPosition+1,value);
+            addItemList.remove(startHideItemPosition);
         }
         else if (startHideItemPosition > currentHideItemPosition)
         {
-            typeTitle.add(currentHideItemPosition, value);
-            typeTitle.remove(startHideItemPosition + 1);
+            addItemList.add(currentHideItemPosition, value);
+            addItemList.remove(startHideItemPosition + 1);
         }
         startHideItemPosition = currentHideItemPosition = AdapterView.INVALID_POSITION;
         notifyDataSetChanged();
@@ -191,12 +196,12 @@ public class GridViewSortAdapter  extends BaseAdapter {
 
     @Override
     public int getCount() {
-        return typeTitle.size();
+        return addItemList.size();
     }
 
     @Override
     public Object getItem(int position) {
-        return typeTitle.get(position);
+        return addItemList.get(position);
     }
 
     @Override
@@ -205,17 +210,31 @@ public class GridViewSortAdapter  extends BaseAdapter {
     }
 
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getView(final int position, View convertView, ViewGroup parent) {
         ViewHolder viewHolder=null;
         if (convertView==null){
-            convertView= LayoutInflater.from(context).inflate(R.layout.view_item_grid_view_sort,null);
-             viewHolder=new ViewHolder();
-            viewHolder.title=(TextView)convertView.findViewById(R.id.view_item_grid_view_sort_title);
+            convertView= LayoutInflater.from(context).inflate(R.layout.column_added,null);
+            viewHolder=new ViewHolder();
+            viewHolder.title=(TextView)convertView.findViewById(R.id.name_column);
+            viewHolder.ivDel=(ImageView) convertView.findViewById(R.id.iv_del);
             convertView.setTag(viewHolder);
         }else {
+
             viewHolder = (ViewHolder) convertView.getTag();
         }
-        viewHolder.title.setText(typeTitle.get(position));
+        viewHolder.title.setText(addItemList.get(position).getTitle());
+        if (isShow){
+            viewHolder.ivDel.setVisibility(View.VISIBLE);
+        }else {
+            viewHolder.ivDel.setVisibility(View.GONE);
+        }
+
+        viewHolder.ivDel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                clickListener.del(addItemList.get(position),position);
+            }
+        });
         if (startHideItemPosition == position)
         {
             convertView.setVisibility(View.INVISIBLE);
@@ -227,9 +246,24 @@ public class GridViewSortAdapter  extends BaseAdapter {
         return convertView;
     }
 
+    public void setVisiable(boolean isShow) {
+        this.isShow=isShow;
+        notifyDataSetChanged();
+    }
+    private ClickListener clickListener;
+
+    public List<AddItem> getAddItemList() {
+        return addItemList;
+    }
+
+    public void setClickListener(ClickListener clickListener) {
+        this.clickListener = clickListener;
+    }
+
     class ViewHolder
     {
         public TextView title;
+        public ImageView ivDel;
 
     }
 }

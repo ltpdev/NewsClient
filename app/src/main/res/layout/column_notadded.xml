@@ -5,8 +5,9 @@
     android:layout_height="wrap_content">
     <Button
         android:id="@+id/name_column"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="80dp"
+        android:layout_height="30dp"
+        android:gravity="center"
         android:background="@drawable/column_btn_bg"
         android:text="栏目名称"/>
 </LinearLayout>

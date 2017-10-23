@@ -29,6 +29,7 @@
     </android.support.v7.widget.Toolbar>
 
     <ScrollView
+        android:id="@+id/scrollView"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
@@ -37,12 +38,25 @@
             android:layout_height="match_parent"
             android:orientation="vertical">
 
-            <com.gdcp.newsclient.view.MyRecyclerView
+           <!-- <com.gdcp.newsclient.view.MyRecyclerView
                 android:id="@+id/addedRecyclerView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="20dp"
-                android:layout_marginTop="10dp"></com.gdcp.newsclient.view.MyRecyclerView>
+                android:layout_marginTop="10dp">
+            </com.gdcp.newsclient.view.MyRecyclerView>-->
+
+            <com.gdcp.newsclient.view.DragSortGridView
+                android:id="@+id/addedDragSortGridView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="10dp"
+                android:clipToPadding="false"
+                android:horizontalSpacing="10dp"
+                android:numColumns="4"
+                android:padding="10dp"
+                android:verticalSpacing="10dp"/>
 
             <RelativeLayout
                 android:layout_width="match_parent"
@@ -54,7 +68,7 @@
                     android:layout_height="wrap_content"
                     android:layout_alignParentRight="true"
                     android:layout_marginRight="10dp"
-                    android:text="长按删除,单击取消删除" />
+                    android:text="长按删除或排序" />
             </RelativeLayout>
 
             <TextView

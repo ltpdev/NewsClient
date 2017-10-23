@@ -28,10 +28,10 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
     <uses-permission android:name="android.permission.WRITE_SETTINGS" />
-    <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS"/>
+    <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS" />
     <uses-permission android:name="android.permission.READ_LOGS" />
-    <!--保存资源到SD卡-->
 
+    <!-- 保存资源到SD卡 -->
     <application
         android:name=".app.APPAplication"
         android:allowBackup="true"
@@ -107,7 +107,7 @@
         <activity android:name=".kuaichuan.ui.ChooseReceiverActivity" />
         <activity android:name=".kuaichuan.ui.FileSenderActivity" />
         <activity android:name=".kuaichuan.ui.ReceiverWaitingActivity" />
-        <activity android:name=".kuaichuan.ui.FileReceiverActivity"></activity>
+        <activity android:name=".kuaichuan.ui.FileReceiverActivity" />
     </application>
 
 </manifest>

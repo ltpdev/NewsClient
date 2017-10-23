@@ -361,6 +361,8 @@ public class MainActivity extends BaseActivity {
             case R.id.setting01:
                 startActivity(false,HomeActivity.class);
                 return true;
+            case R.id.setting02:
+                return true;
 
         }
 

@@ -1,5 +1,4 @@
 package com.gdcp.newsclient.view;
-
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
@@ -12,6 +11,7 @@ import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.ImageView;
 
+import com.gdcp.newsclient.R;
 import com.gdcp.newsclient.adapter.GridViewSortAdapter;
 
 /**
@@ -48,10 +48,17 @@ public class DragSortGridView extends GridView implements AdapterView.OnItemLong
         setOnItemLongClickListener(this);
     }
 
+
+
+
     @Override
     public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+        //Toast.makeText(getContext(), "dddd", Toast.LENGTH_SHORT).show();
         //至少有两个item时才可以排序
         if (getChildCount()>=2){
+            /*ImageView imageView= (ImageView) view.findViewById(R.id.iv_del);
+            imageView.setVisibility(VISIBLE);
+            imageView.invalidate();*/
             mView=view;
             //在调用getDrawingCache必须先调用如下方法：
             view.setDrawingCacheEnabled(true);
@@ -75,6 +82,7 @@ public class DragSortGridView extends GridView implements AdapterView.OnItemLong
             windowManager.addView(dragItemView,dragItemLayoutParams);
             ((GridViewSortAdapter) getAdapter()).init();
             ((GridViewSortAdapter) getAdapter()).hideView(position);
+            ((GridViewSortAdapter) getAdapter()).setVisiable(true);
             dragStarted = true;
         }
         return true;
@@ -117,7 +125,25 @@ public class DragSortGridView extends GridView implements AdapterView.OnItemLong
         }
         return super.onTouchEvent(ev);
     }
-
+/*内部拦截，解决滑动冲突*/
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        switch (ev.getAction()){
+            case MotionEvent.ACTION_MOVE:
+                if (dragStarted){
+                    //设置需要拦截此事件
+                    requestDisallowInterceptTouchEvent(true);
+                }
+                break;
+            case MotionEvent.ACTION_UP:
+                if (dragStarted){
+                    //设置不需要拦截此事件
+                    requestDisallowInterceptTouchEvent(false);
+                }
+                break;
+        }
+        return super.dispatchTouchEvent(ev);
+    }
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
