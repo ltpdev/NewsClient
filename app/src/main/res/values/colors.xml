@@ -3,8 +3,16 @@
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
-    <color name="day_btn_color">#E61ABD</color>
-    <color name="day_background">#38F709</color>
-    <color name="night_btn_color">#000000</color>
-    <color name="night_background">#FFFFFF</color>
+    <color name="text_color">#FF4081</color>
+    <color name="transparent">#00000000</color>
+    <color name="newsbg_color">#fff</color>
+    <color name="hole_gray_blue">#cc81d4fa</color>
+    <color name="color_device">#5496E9</color>
+    <color name="color_file">#D6B02E</color>
+    <color name="color_storage">#11DE0A</color>
+    <color name="transparent_white">#44ffffff</color>
+    <color name="color_yellow">#d5de85</color>
+    <color name="white">#fff</color>
+    <color name="view_bg">#000</color>
+
 </resources>

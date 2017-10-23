@@ -1,17 +1,17 @@
 package com.gdcp.newsclient.ui.activity;
-
-import android.os.Bundle;
-import android.text.AndroidCharacter;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
-
 import com.gdcp.newsclient.R;
 import com.gdcp.newsclient.bean.NewsBean;
+import com.kingja.loadsir.callback.Callback;
+import com.kingja.loadsir.callback.SuccessCallback;
+import com.kingja.loadsir.core.Convertor;
+import com.kingja.loadsir.core.LoadService;
+import com.kingja.loadsir.core.LoadSir;
 import com.tencent.smtt.sdk.WebChromeClient;
 import com.tencent.smtt.sdk.WebView;
 import com.tencent.smtt.sdk.WebViewClient;
-
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
@@ -23,8 +23,10 @@ public class NewsDetailActivity extends BaseActivity {
     @BindView(R.id.web_view)
     WebView webView;
 
+
     @Override
     protected void initData() {
+
         NewsBean.ResultBean resultBean= (NewsBean.ResultBean)
                 getIntent().getSerializableExtra("news");
         webView.loadUrl(resultBean.getUrl());
@@ -43,6 +45,8 @@ public class NewsDetailActivity extends BaseActivity {
     }
 
     private void initWebView() {
+
+
         webView.setWebViewClient(new WebViewClient(){
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
@@ -56,7 +60,8 @@ public class NewsDetailActivity extends BaseActivity {
             public void onProgressChanged(WebView view, int newProgress) {
                  if (newProgress==100){
                      progressBar.setVisibility(View.GONE);
-                 }else {
+                 }
+                   else {
                      progressBar.setVisibility(View.VISIBLE);
                      progressBar.setProgress(newProgress);
                  }

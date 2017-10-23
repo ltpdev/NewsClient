@@ -1,11 +1,7 @@
 package com.gdcp.newsclient.ui.activity;
-
-import android.content.res.AssetManager;
-import android.content.res.Resources;
-import android.graphics.Color;
-import android.graphics.drawable.Drawable;
-import android.os.Build;
-import android.os.Bundle;
+import android.app.Activity;
+import android.content.Intent;
+import android.content.res.Configuration;
 import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
@@ -16,23 +12,43 @@ import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AppCompatDelegate;
 import android.support.v7.widget.Toolbar;
 import android.util.AndroidException;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.bumptech.glide.Glide;
 import com.gdcp.newsclient.R;
 import com.gdcp.newsclient.adapter.MainViewPagerAdapter;
-import com.gdcp.newsclient.skin.ISkinUpdate;
-import com.gdcp.newsclient.skin.SkinPackageManager;
-import com.gdcp.newsclient.skin.config.SkinConfig;
+import com.gdcp.newsclient.app.APPAplication;
+import com.gdcp.newsclient.config.AppConfig;
+import com.gdcp.newsclient.event.DayNightEvent;
+import com.gdcp.newsclient.kuaichuan.ui.HomeActivity;
 import com.gdcp.newsclient.ui.fragment.MainFragment01;
 import com.gdcp.newsclient.ui.fragment.MainFragment02;
 import com.gdcp.newsclient.ui.fragment.MainFragment03;
 import com.gdcp.newsclient.ui.fragment.MainFragment04;
 import com.gdcp.newsclient.ui.fragment.MainFragment05;
+import com.tencent.connect.UserInfo;
+import com.tencent.connect.auth.QQToken;
+import com.tencent.connect.common.Constants;
+import com.tencent.tauth.IUiListener;
+import com.tencent.tauth.Tencent;
+import com.tencent.tauth.UiError;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
@@ -44,7 +60,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import fm.jiecao.jcvideoplayer_lib.JCVideoPlayer;
 
-public class MainActivity extends BaseActivity implements ISkinUpdate {
+public class MainActivity extends BaseActivity {
 
 
     @BindView(R.id.toolbal)
@@ -69,13 +85,24 @@ public class MainActivity extends BaseActivity implements ISkinUpdate {
     DrawerLayout drawerLayout;
     private List<Fragment> fragmentList;
     private MainViewPagerAdapter mainViewPagerAdapter;
-    private static final String APK_NAME = "app-debug.apk";
-    private static final String DEX_PATH = Environment
-            .getExternalStorageDirectory().getAbsolutePath() + "/skin.apk";
+    private ImageView ivcon;
+    private TextView tvName;
+    private Tencent mTencent;
+    private LoginUiListener loginUiListener;
 
     @Override
     protected void initData() {
-
+        //沉浸式
+        getWindow().getDecorView().setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener() {
+            @Override
+            public void onSystemUiVisibilityChange(int visibility) {
+                if (visibility == View.SYSTEM_UI_FLAG_VISIBLE) {
+                    onWindowFocusChanged(true);
+                }
+            }
+        });
+        int index = getIntent().getIntExtra("index", 0);
+        viewPager.setCurrentItem(index);
     }
 
     @Override
@@ -86,6 +113,7 @@ public class MainActivity extends BaseActivity implements ISkinUpdate {
 
     @Override
     protected void initView() {
+        mTencent = Tencent.createInstance("1106185205", this.getApplicationContext());
         initToolBar();
         initActionBarDrawerToggle();
         fragmentList = new ArrayList<>();
@@ -99,30 +127,134 @@ public class MainActivity extends BaseActivity implements ISkinUpdate {
         initViewPagerListener();
         initRadioGroupListener();
         initNavigationViewListener();
-        /*SkinPackageManager.getInstance(MainActivity.this).copyApkFromAssets(MainActivity.this,APK_NAME,DEX_PATH);*/
+        View view = navigationView.getHeaderView(0);
+        initHeaderViewListener(view);
+        checkLoginState();
+
     }
 
+    private void checkLoginState() {
+        if (!mTencent.isSessionValid()) {
+            ivcon.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    LoginQQ();
+                }
+            });
+        } else {
+            showToast("已经登录了");
+            getUserinfo();
+
+        }
+
+
+    }
+
+    private void getUserinfo() {
+        QQToken qqToken = mTencent.getQQToken();
+        UserInfo mUserInfo = new UserInfo(getApplicationContext(), qqToken);
+        mUserInfo.getUserInfo(new IUiListener() {
+            @Override
+            public void onComplete(Object response) {
+                JSONObject jo = (JSONObject) response;
+                try {
+                    String nickName = jo.getString("nickname");
+                    String headUrl = jo.getString("figureurl_2");
+                    Glide.with(MainActivity.this).load(headUrl).into(ivcon);
+                    tvName.setText(nickName);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+
+            }
+
+            @Override
+            public void onError(UiError uiError) {
+                //Toast.makeText(MainActivity.this, "登录失败", Toast.LENGTH_SHORT).show();
+
+            }
+
+            @Override
+            public void onCancel() {
+                //Toast.makeText(MainActivity.this, "登录取消", Toast.LENGTH_SHORT).show();
+
+
+            }
+        });
+
+    }
+
+    private void initHeaderViewListener(View view) {
+        ivcon = (ImageView) view.findViewById(R.id.icon_user);
+        tvName = (TextView) view.findViewById(R.id.name_user);
+    }
+
+    //登录qq获取个人信息
+    private void LoginQQ() {
+        loginUiListener = new LoginUiListener();
+        //all表示获取所有权限
+        mTencent.login(MainActivity.this, "all", loginUiListener);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == Constants.REQUEST_LOGIN) {
+            Tencent.onActivityResultData(requestCode, resultCode, data, loginUiListener);
+        }
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    private class LoginUiListener implements IUiListener {
+
+        @Override
+        public void onComplete(Object response) {
+            Toast.makeText(MainActivity.this, "授权成功", Toast.LENGTH_SHORT).show();
+            JSONObject obj = (JSONObject) response;
+            try {
+                String openID = obj.getString("openid");
+                String accessToken = obj.getString("access_token");
+                String expires = obj.getString("expires_in");
+                mTencent.setOpenId(openID);
+                mTencent.setAccessToken(accessToken, expires);
+                getUserinfo();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+
+        @Override
+        public void onError(UiError uiError) {
+            Toast.makeText(MainActivity.this, "授权失败", Toast.LENGTH_SHORT).show();
+        }
+
+        @Override
+        public void onCancel() {
+            Toast.makeText(MainActivity.this, "授权取消", Toast.LENGTH_SHORT).show();
+
+        }
+    }
+
+
     private void initActionBarDrawerToggle() {
-         ActionBarDrawerToggle actionBarDrawerToggle=new ActionBarDrawerToggle(this,drawerLayout,toolbal,0,0);
+        ActionBarDrawerToggle actionBarDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout, toolbal, 0, 0);
         drawerLayout.setDrawerListener(actionBarDrawerToggle);
         actionBarDrawerToggle.syncState();
     }
 
     private void initToolBar() {
         setSupportActionBar(toolbal);
-        toolbal.setTitleTextColor(Color.WHITE);
+       /* toolbal.setTitleTextColor(Color.WHITE);*/
         ActionBar actionBar = getSupportActionBar();
-        if (actionBar!=null){
+        if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
+
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        if (SkinPackageManager.getInstance(this).getResources() != null) {
-            updateTheme();
-        }
     }
 
     private void initNavigationViewListener() {
@@ -131,58 +263,25 @@ public class MainActivity extends BaseActivity implements ISkinUpdate {
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 switch (item.getItemId()) {
                     case R.id.menu01:
-                        SkinConfig.getInstance(MainActivity.this).setSkinColor("night_btn_color");
-                        loadSkin();
                         drawerLayout.closeDrawers();
                         return true;
                     case R.id.menu02:
-                       /* SkinPackageManager.getInstance(MainActivity.this).copyApkFromAssets(MainActivity.this, APK_NAME,
-                                DEX_PATH);*/
-                        SkinConfig.getInstance(MainActivity.this).setSkinColor("night_background");
-                        loadSkin();
                         drawerLayout.closeDrawers();
                         return true;
                     case R.id.menu03:
-                        SkinConfig.getInstance(MainActivity.this).setSkinColor("colorAccent");
-                        loadSkin();
                         drawerLayout.closeDrawers();
                         return true;
                     case R.id.menu04:
-                        SkinConfig.getInstance(MainActivity.this).setSkinColor("colorPrimary");
-                        loadSkin();
                         drawerLayout.closeDrawers();
                         return true;
-
                 }
 
                 return false;
             }
         });
     }
-    /**
-     * 加载皮肤
-     */
-    private void loadSkin() {
-        SkinPackageManager.getInstance(MainActivity.this).loadSkinAsync(DEX_PATH, new SkinPackageManager.LoadSkinCallBack() {
-            @Override
-            public void startLoadSkin() {
-                Log.d("xiaowu", "startloadSkin");
-            }
 
-            @Override
-            public void loadSkinSuccess() {
-                Log.d("xiaowu", "loadSkinSuccess");
-                // 然后这里更新主题
-                updateTheme();
-            }
 
-            @Override
-            public void loadSkinFail() {
-                Log.d("xiaowu", "loadSkinFail");
-            }
-        });
-
-    }
 
 
     private void initRadioGroupListener() {
@@ -248,17 +347,21 @@ public class MainActivity extends BaseActivity implements ISkinUpdate {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-       getMenuInflater().inflate(R.menu.toobar,menu);
+        getMenuInflater().inflate(R.menu.toobar, menu);
         return super.onCreateOptionsMenu(menu);
     }
 
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()){
+        switch (item.getItemId()) {
             case R.id.home:
                 drawerLayout.openDrawer(GravityCompat.START);
-            return true;
+                return true;
+            case R.id.setting01:
+                startActivity(false,HomeActivity.class);
+                return true;
+
         }
 
         return super.onOptionsItemSelected(item);
@@ -267,33 +370,81 @@ public class MainActivity extends BaseActivity implements ISkinUpdate {
 
 
     @Override
-    public void updateTheme() {
-          Resources resources=SkinPackageManager.getInstance(MainActivity.this).getResources();
-
-             if (!SkinConfig.getInstance(MainActivity.this).getSkinColor().equals("")){
-                 int background=resources.getIdentifier(SkinConfig.getInstance(MainActivity.this).getSkinColor(),"color","com.gdcp.skin");
-                 drawerLayout.setBackgroundDrawable(resources.getDrawable(background));
-                 if (SkinConfig.getInstance(MainActivity.this).getSkinColor().equals("night_background")){
-                     int toolbalbackground=resources.getIdentifier("colorPrimary","color","com.gdcp.skin");
-                     toolbal.setBackgroundDrawable(resources.getDrawable(toolbalbackground));
-                 }else {
-                     toolbal.setBackgroundDrawable(null);
-                 }
-             }
-    }
-
-    @Override
     public void onBackPressed() {
         if (JCVideoPlayer.backPress()) {
             return;
         }
         super.onBackPressed();
     }
+
     @Override
     protected void onPause() {
         super.onPause();
         JCVideoPlayer.releaseAllVideos();
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (!EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().register(this);
+        }
+    }
 
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(DayNightEvent event) {
+        if (event.isNight()) {
+            getDelegate().setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);//切换夜间模式
+
+            reStartActivity();
+        } else {
+            getDelegate().setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);//切换日间模式
+
+            reStartActivity();
+        }
+    }
+
+    ;
+
+
+    private void reStartActivity() {
+        Intent intent = new Intent(MainActivity.this, MainActivity.class);
+        intent.putExtra("index", 4);
+        viewPager.setCurrentItem(4);
+        startActivity(intent);
+        overridePendingTransition(R.anim.animo_alph_start, R.anim.animo_alph_close);
+        finish();
+
+
+    }
+
+
+    private void refreshResources(Activity activity) {
+        AppConfig appConfig = new AppConfig(getApplicationContext());
+        if (appConfig.isNightTheme()) {
+            updateConfig(activity, Configuration.UI_MODE_NIGHT_YES);
+        } else {
+            updateConfig(activity, Configuration.UI_MODE_NIGHT_NO);
+        }
+    }
+
+    /**
+     * google官方bug，暂时解决方案 * 手机切屏后重新设置UI_MODE
+     * 模式（因为在DayNight主题下，切换横屏后UI_MODE会出错，会导致
+     * 资源获取出错，需要重新设置回来）好像这个方法无效
+     */
+    private void updateConfig(Activity activity, int uiNightMode) {
+        Configuration newConfig = new
+                Configuration(activity.getResources().getConfiguration());
+        newConfig.uiMode &= ~Configuration.UI_MODE_NIGHT_MASK;
+        newConfig.uiMode |= uiNightMode;
+        activity.getResources().updateConfiguration(newConfig, null);
+    }
+
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        EventBus.getDefault().unregister(this);
+    }
 }

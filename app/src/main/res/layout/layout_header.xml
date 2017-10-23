@@ -4,12 +4,14 @@
     android:background="@color/colorPrimary"
     android:layout_height="180dp">
   <de.hdodenhof.circleimageview.CircleImageView
+      android:id="@+id/icon_user"
       android:layout_marginTop="20dp"
       android:src="@drawable/home_tab_03_selected"
       android:layout_width="80dp"
       android:layout_gravity="center_horizontal"
       android:layout_height="80dp" />
   <TextView
+      android:id="@+id/name_user"
       android:layout_marginTop="20dp"
       android:layout_gravity="center_horizontal"
       android:layout_width="wrap_content"

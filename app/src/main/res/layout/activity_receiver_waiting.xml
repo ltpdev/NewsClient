@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_receiver_waiting"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorPrimary"
+    tools:context="com.gdcp.newsclient.kuaichuan.ui.ReceiverWaitingActivity">
+    <TextView
+        android:id="@+id/tv_top_tip"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:singleLine="true"
+        android:ellipsize="end"
+        android:text="正在等待发送者连接..."
+        android:textSize="16sp"
+        android:textColor="@android:color/white"
+        android:textStyle="bold"
+        android:padding="10dp"/>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/tv_top_tip">
+        <com.gdcp.newsclient.kuaichuan.view.RadarLayout
+            android:id="@+id/radarLayout"
+            android:layout_height="match_parent"
+            android:layout_width="match_parent" />
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/iv_device"
+            android:layout_width="96dp"
+            android:layout_height="96dp"
+            android:src="@mipmap/icon_radish"
+            app:civ_border_width="2dp"
+            app:civ_border_color="#FFFFFFFF"
+            android:layout_centerInParent="true"/>
+
+        <TextView
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:gravity="center_horizontal"
+            android:id="@+id/tv_device_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:text="设备名"
+            android:textSize="14sp"
+            android:textColor="@android:color/white"
+            android:layout_below="@id/iv_device" />
+        <TextView
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:gravity="center_horizontal"
+            android:id="@+id/tv_desc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="正在初始化，请稍后..."
+            android:textSize="16sp"
+            android:textColor="@android:color/white"
+            android:layout_below="@id/tv_device_name" />
+
+    </RelativeLayout>
+
+</RelativeLayout>

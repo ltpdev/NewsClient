@@ -3,8 +3,8 @@
 
         <item
             android:id="@+id/setting01"
-            android:title="HAAH"></item>
+            android:title="面对面快传"></item>
         <item
             android:id="@+id/setting02"
-            android:title="HAAH"></item>
+            android:title="其它功能"></item>
 </menu>

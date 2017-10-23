@@ -6,9 +6,11 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.bumptech.glide.Glide;
 import com.gdcp.newsclient.R;
 import com.gdcp.newsclient.bean.NewsBean;
-import com.squareup.picasso.Picasso;
+
 
 import java.util.List;
 
@@ -58,7 +60,7 @@ public class NewsAdapter extends BaseAdapter {
             tvTitle.setText(resultBean.getTitle());
             tvSource.setText(resultBean.getSource());
             tvComment.setText(resultBean.getReplyCount() + "跟帖");
-            Picasso.with(context).load(resultBean.getImgsrc()).into(ivIcon);
+            Glide.with(context).load(resultBean.getImgsrc()).into(ivIcon);
 
 
         } else if (itemViewType == ITEM_TYPE_WITH_3_IMAGE) {
@@ -72,9 +74,9 @@ public class NewsAdapter extends BaseAdapter {
             ImageView iv03 = (ImageView) convertView.findViewById(R.id.iv_03);
             tvTitle.setText(resultBean.getTitle());
             tvComment.setText(resultBean.getReplyCount() + "跟帖");
-            Picasso.with(context).load(resultBean.getImgsrc()).into(iv01);
-            Picasso.with(context).load(resultBean.getImgextra().get(0).getImgsrc()).into(iv02);
-            Picasso.with(context).load(resultBean.getImgextra().get(1).getImgsrc()).into(iv03);
+            Glide.with(context).load(resultBean.getImgsrc()).into(iv01);
+            Glide.with(context).load(resultBean.getImgextra().get(0).getImgsrc()).into(iv02);
+            Glide.with(context).load(resultBean.getImgextra().get(1).getImgsrc()).into(iv03);
 
         }
 

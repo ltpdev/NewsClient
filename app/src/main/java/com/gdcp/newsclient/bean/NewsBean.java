@@ -7,7 +7,7 @@ import java.util.List;
  * Created by asus- on 2017/6/28.
  */
 
-public class NewsBean {
+public class NewsBean implements Serializable{
 
     /**
      * postid : PHOT25260000100A

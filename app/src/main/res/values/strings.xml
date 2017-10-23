@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">NewsClient</string>
+    <string name="tip_loading">加载中。。。。</string>
+    <string-array name="array_res">
+        <item>应用</item>
+        <item>图片</item>
+        <item>音乐</item>
+        <item>视频</item>
+    </string-array>
 </resources>

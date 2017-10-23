@@ -8,6 +8,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.widget.Toast;
 
 import com.gdcp.newsclient.R;
+import com.gdcp.newsclient.app.APPAplication;
 
 import butterknife.ButterKnife;
 
