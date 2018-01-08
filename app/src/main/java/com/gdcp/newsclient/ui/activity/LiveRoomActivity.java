@@ -17,9 +17,11 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.ArrayAdapter;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -28,6 +30,8 @@ import android.widget.Toast;
 import com.gdcp.newsclient.R;
 import com.gdcp.newsclient.bean.HlsBean;
 import com.gdcp.newsclient.manager.DialogManager;
+import com.gdcp.newsclient.utils.DanmuProcess;
+import com.gdcp.newsclient.utils.ThreadUtil;
 import com.gdcp.newsclient.view.MyVideoView;
 import com.google.gson.Gson;
 import com.lidroid.xutils.HttpUtils;
@@ -36,14 +40,17 @@ import com.lidroid.xutils.http.ResponseInfo;
 import com.lidroid.xutils.http.callback.RequestCallBack;
 import com.lidroid.xutils.http.client.HttpRequest;
 
+import java.util.ArrayList;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import io.vov.vitamio.LibsChecker;
 import io.vov.vitamio.MediaPlayer;
 import io.vov.vitamio.Vitamio;
+import master.flame.danmaku.controller.IDanmakuView;
 
-public class LiveRoomActivity extends AppCompatActivity {
+public class LiveRoomActivity extends AppCompatActivity implements DanmuProcess.OnDanmuDataComeListener{
     private static final int UPDATE_UI = 1;
     @BindView(R.id.videoPlayer)
     MyVideoView videoPlayer;
@@ -73,6 +80,11 @@ public class LiveRoomActivity extends AppCompatActivity {
     ImageView back;
     @BindView(R.id.title)
     TextView liveTitle;
+    @BindView(R.id.danmakuView)
+    IDanmakuView danmakuView;
+    @BindView(R.id.listview)
+    ListView listView;
+    private DanmuProcess mDanmuProcess;
     private boolean isFull=false;
     private int screen_width;
     private int screen_height;
@@ -82,11 +94,13 @@ public class LiveRoomActivity extends AppCompatActivity {
     float lastX = 0, lastY = 0;
     private float screenBrightness;
     private DialogManager dialogManager;
+    private ArrayAdapter<String> adapter ;
     private Handler uiHandler=new Handler(){
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             if (msg.what==UPDATE_UI){
+
                 /*int totalLength=videoPlayer.getDuration();
                 int curPosition=videoPlayer.getCurrentPosition();
                 updateTextViewWithTimeFormat(timeTotalTv,totalLength);
@@ -101,6 +115,9 @@ public class LiveRoomActivity extends AppCompatActivity {
                 if (controlTopLayout.getVisibility()==View.VISIBLE){
                     controlTopLayout.setVisibility(View.GONE);
                 }
+                if (lockImg.getVisibility()==View.VISIBLE){
+                    lockImg.setVisibility(View.GONE);
+                }
             }
         }
     };
@@ -108,6 +125,10 @@ public class LiveRoomActivity extends AppCompatActivity {
     private boolean isSeekTo=false;
     private String liveUrl;
     private String TAG="LiveRoomActivity";
+    private String roomId;
+    private ArrayList<String> damuList;
+    private boolean isLiveing=true;
+    private HttpUtils utils;
 
 
     @Override
@@ -123,11 +144,43 @@ public class LiveRoomActivity extends AppCompatActivity {
         requstData();
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (mDanmuProcess!=null){
+            mDanmuProcess.finish();
+        }
+        isLiveing=false;
+        danmakuView.release();
+    }
+    //重新请求数据
+    private void retryRequstData() {
+        String url="https://m.douyu.com/html5/live?roomId="+roomId;
+        Log.i(TAG, "roomid: "+getIntent().getStringExtra("roomid"));
+        utils.send(HttpRequest.HttpMethod.GET,url, new RequestCallBack<String>() {
+            @Override
+            public void onSuccess(ResponseInfo<String> responseInfo) {
+                String json = responseInfo.result;
+                Gson gson=new Gson();
+                HlsBean hlsBean=gson.fromJson(json,HlsBean.class);
+                liveUrl=hlsBean.getData().getHls_url();
+                videoPlayer.pause();
+                videoPlayer.setVideoURI(Uri.parse(liveUrl));
+                Log.i("retryRequstData","再次请求数据成功");
+            }
+
+            @Override
+            public void onFailure(HttpException error, String msg) {
+
+            }
+        });
+    }
 
     private void requstData() {
-        String url="https://m.douyu.com/html5/live?roomId="+getIntent().getStringExtra("roomid");
+         roomId=getIntent().getStringExtra("roomid");
+        String url="https://m.douyu.com/html5/live?roomId="+roomId;
         Log.i(TAG, "roomid: "+getIntent().getStringExtra("roomid"));
-        HttpUtils utils = new HttpUtils();
+        utils = new HttpUtils();
         utils.send(HttpRequest.HttpMethod.GET,url, new RequestCallBack<String>() {
             @Override
             public void onSuccess(ResponseInfo<String> responseInfo) {
@@ -156,10 +209,25 @@ public class LiveRoomActivity extends AppCompatActivity {
                 uiHandler.sendEmptyMessageDelayed(2,5000);
             }
         });
-        videoPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+
+        videoPlayer.setOnErrorListener(new MediaPlayer.OnErrorListener() {
             @Override
-            public void onCompletion(MediaPlayer mp) {
-                pause.setImageResource(R.mipmap.pause1);
+            public boolean onError(MediaPlayer mp, int what, int extra) {
+                Log.i("onError","播放错误");
+                return false;
+            }
+        });
+        videoPlayer.setOnInfoListener(new MediaPlayer.OnInfoListener() {
+            @Override
+            public boolean onInfo(MediaPlayer mp, int what, int extra) {
+                switch(what){
+                    case MediaPlayer.MEDIA_INFO_VIDEO_TRACK_LAGGING:
+                        break;
+                    case MediaPlayer.MEDIA_INFO_NOT_SEEKABLE:
+
+                        break;
+                }
+                return false;
             }
         });
 
@@ -188,13 +256,16 @@ public class LiveRoomActivity extends AppCompatActivity {
                 float y=event.getY();
                 switch (event.getAction()){
                     case MotionEvent.ACTION_DOWN:
-                        if(controlBarlayout.getVisibility()==View.GONE &&controlTopLayout.getVisibility()==View.GONE){
+                        if(controlBarlayout.getVisibility()==View.GONE
+                                &&controlTopLayout.getVisibility()==View.GONE&&lockImg.getVisibility()==View.GONE){
                             controlBarlayout.setVisibility(View.VISIBLE);
                             controlTopLayout.setVisibility(View.VISIBLE);
+                            lockImg.setVisibility(View.VISIBLE);
                             uiHandler.sendEmptyMessageDelayed(2,5000);
                         }else {
                             controlBarlayout.setVisibility(View.GONE);
                             controlTopLayout.setVisibility(View.GONE);
+                            lockImg.setVisibility(View.GONE);
                             //uiHandler.removeMessages(2);
                         }
                         lastX=x;
@@ -286,6 +357,12 @@ public class LiveRoomActivity extends AppCompatActivity {
         });
 
     }
+//播放弹幕
+    private void playDanMu() {
+        mDanmuProcess = new DanmuProcess(this, danmakuView, Integer.parseInt(roomId));
+        mDanmuProcess.setOnDanmuDataComeListener(this);
+        mDanmuProcess.start();
+    }
 
 
     /*调节音量*/
@@ -328,6 +405,12 @@ public class LiveRoomActivity extends AppCompatActivity {
     }
 
     private void initData() {
+        playDanMu();
+        KeepLive keepLive=new KeepLive();
+        ThreadUtil.executorService.execute(keepLive);
+        damuList=new ArrayList<>();
+        adapter= new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, damuList);
+        listView.setAdapter(adapter);
         String title=getIntent().getStringExtra("title");
         liveTitle.setText(title);
         dialogManager=new DialogManager(this);
@@ -369,6 +452,14 @@ public class LiveRoomActivity extends AppCompatActivity {
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.lock_img:
+                if (danmakuView.isShown()){
+                    danmakuView.hide();
+                    lockImg.setImageResource(R.mipmap.danmu2);
+                }else {
+                    danmakuView.show();
+                    lockImg.setImageResource(R.mipmap.danmu);
+                }
+
                 break;
             case R.id.pause:
                 if (videoPlayer.isPlaying()){
@@ -450,5 +541,35 @@ public class LiveRoomActivity extends AppCompatActivity {
     public static int dip2px(Context context, float dpValue) {
         final float scale = context.getResources().getDisplayMetrics().density;
         return (int) (dpValue * scale + 0.5f);
+    }
+
+    @Override
+    public void refreshListView(final String data) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                damuList.add(data);
+                if (!isFull){
+                    adapter.notifyDataSetChanged();
+                }
+            }
+        });
+    }
+
+
+    class KeepLive extends Thread{
+        @Override
+        public void run() {
+            super.run();
+            while (isLiveing) {
+                try {
+                    //睡眠2分钟
+                    Thread.sleep(2 * 1000 * 60);
+                    retryRequstData();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 }

@@ -14,12 +14,18 @@
             android:id="@+id/videoPlayer"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
+        <master.flame.danmaku.ui.widget.DanmakuView
+            android:id="@+id/danmakuView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
         <ImageView
-            android:visibility="gone"
-            android:src="@mipmap/unlock"
+            android:layout_marginRight="5dp"
+            android:layout_alignParentRight="true"
+            android:src="@mipmap/danmu"
             android:layout_marginLeft="20dp"
             android:layout_centerVertical="true"
             android:id="@+id/lock_img"
+            android:scaleType="centerCrop"
             android:layout_width="30dp"
             android:layout_height="30dp" />
         <include layout="@layout/top_layout_live"></include>
@@ -120,12 +126,20 @@
 
 
     </RelativeLayout>
-
 <TextView
-    android:visibility="gone"
-    android:layout_marginBottom="30dp"
-    android:layout_alignParentBottom="true"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:text="dddddd"/>
+    android:background="@color/colorAccent"
+    android:padding="10dp"
+    android:id="@+id/tv_talk"
+    android:layout_below="@+id/total_relative"
+    android:text="聊天"
+    android:textColor="@android:color/white"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content" />
+<ListView
+    android:transcriptMode="alwaysScroll"
+    android:layout_marginTop="10dp"
+    android:layout_below="@+id/tv_talk"
+    android:id="@+id/listview"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" />
 </RelativeLayout>
