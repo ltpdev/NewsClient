@@ -11,7 +11,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
-import android.widget.Button;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -51,8 +50,6 @@ public class GridViewSortAdapter  extends BaseAdapter {
         mVerticalSpace = gridView.getRequestedHorizontalSpacing();
         mGridView = gridView;
     }
-
-
 
 
 
@@ -224,7 +221,12 @@ public class GridViewSortAdapter  extends BaseAdapter {
         }
         viewHolder.title.setText(addItemList.get(position).getTitle());
         if (isShow){
-            viewHolder.ivDel.setVisibility(View.VISIBLE);
+            if (position==0){
+                viewHolder.ivDel.setVisibility(View.GONE);
+            }else{
+                viewHolder.ivDel.setVisibility(View.VISIBLE);
+            }
+
         }else {
             viewHolder.ivDel.setVisibility(View.GONE);
         }

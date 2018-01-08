@@ -104,10 +104,10 @@ public class WeatherActivity extends AppCompatActivity implements AMapLocationLi
             @Override
             public void onRefresh() {
                 requestWeather(weatherId);
-                requestForecast(weatherId);
+                //requestForecast(weatherId);
             }
         });
-        requestForecast(weatherId);
+        //requestForecast(weatherId);
         //drawWeather();
     }
 
@@ -126,8 +126,10 @@ public class WeatherActivity extends AppCompatActivity implements AMapLocationLi
                 final String responseText = response.body().string();
                 Gson gson=new Gson();
                 com.gdcp.newsclient.bean.Weather weather=gson.fromJson(responseText,com.gdcp.newsclient.bean.Weather.class);
-
-                for (int i = 0; i <weather.getResult().getWeather().size(); i++) {
+            if (weather.getResult()==null){
+                return;
+            }
+                            for (int i = 0; i <weather.getResult().getWeather().size(); i++) {
 
                     WeatherBean weatherBean=new WeatherBean(weather.getResult().getWeather().get(i).getInfo().getDay().get(1),
                             Integer.parseInt(weather.getResult().getWeather().get(i).getInfo().getDay().get(2))
@@ -239,6 +241,7 @@ public class WeatherActivity extends AppCompatActivity implements AMapLocationLi
     }
 
     public void showWeatherInfo(Weather weather) {
+        weatherBeanList.clear();
         String cityName = weather.basic.cityName;
         String updateTime = weather.basic.update.updateTime.split(" ")[1];
         String degree = weather.now.temperature + "度";
@@ -256,6 +259,10 @@ public class WeatherActivity extends AppCompatActivity implements AMapLocationLi
             infoText.setText(forecast.more.info);
             maxText.setText(forecast.temperature.max);
             minText.setText(forecast.temperature.min);
+            /*天气折线图初始化*/
+            WeatherBean weatherBean=new WeatherBean(forecast.more.info, Integer.parseInt(forecast.temperature.max),forecast.date);
+            weatherBeanList.add(weatherBean);
+            /*end*/
             forecastLayout.addView(view);
         }
         if (weather.aqi != null) {
@@ -269,7 +276,12 @@ public class WeatherActivity extends AppCompatActivity implements AMapLocationLi
         carWashText.setText(carwash);
         sportText.setText(sport);
         weatherLayout.setVisibility(View.VISIBLE);
-
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                miuiWeatherView.setData(weatherBeanList);
+            }
+        });
 
     }
 

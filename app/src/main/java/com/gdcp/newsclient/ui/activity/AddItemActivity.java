@@ -15,11 +15,15 @@ import com.gdcp.newsclient.R;
 import com.gdcp.newsclient.adapter.GridViewSortAdapter;
 import com.gdcp.newsclient.adapter.NotAddColumnAdapter;
 import com.gdcp.newsclient.bean.AddItem;
+import com.gdcp.newsclient.event.DayNightEvent;
+import com.gdcp.newsclient.event.ItemSortEvent;
 import com.gdcp.newsclient.listener.ClickListener;
 import com.gdcp.newsclient.view.DragSortGridView;
 import com.gdcp.newsclient.view.MyRecyclerView;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+
+import org.greenrobot.eventbus.EventBus;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -87,6 +91,7 @@ public class AddItemActivity extends BaseActivity implements ClickListener {
         notAddedRecyclerView.setAdapter(notAddColumnAdapter);
         addedColumnAdapter.setClickListener(this);
         notAddColumnAdapter.setClickListener(this);
+
     }
 
     private void initToolBar() {
@@ -114,6 +119,7 @@ public class AddItemActivity extends BaseActivity implements ClickListener {
         switch (view.getId()) {
             case R.id.tv_commit:
                 update();
+                EventBus.getDefault().post(new ItemSortEvent(true));
                 finish();
                 break;
 
@@ -125,20 +131,20 @@ public class AddItemActivity extends BaseActivity implements ClickListener {
         SharedPreferences.Editor editor = sharedPreferences.edit();
         Gson gson = new Gson();
         List<AddItem> list = new ArrayList<>();
-        /*for (int i = 0; i < addList.size(); i++) {
+        for (int i = 0; i < addList.size(); i++) {
             AddItem addItem=new AddItem();
             addItem.setAdded(true);
             addItem.setTitle(addList.get(i).getTitle());
             addItem.setChannelId(addList.get(i).getChannelId());
             list.add(addItem);
-        }*/
-        for (int i = 0; i < addedColumnAdapter.getAddItemList().size(); i++) {
+        }
+       /* for (int i = 0; i < addedColumnAdapter.getAddItemList().size(); i++) {
             AddItem addItem = new AddItem();
             addItem.setAdded(true);
             addItem.setTitle(addedColumnAdapter.getAddItemList().get(i).getTitle());
             addItem.setChannelId(addedColumnAdapter.getAddItemList().get(i).getChannelId());
             list.add(addItem);
-        }
+        }*/
 
         for (int i = 0; i < notAddList.size(); i++) {
             AddItem addItem = new AddItem();

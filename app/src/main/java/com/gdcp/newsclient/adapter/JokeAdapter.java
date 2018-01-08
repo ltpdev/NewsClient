@@ -1,6 +1,7 @@
 package com.gdcp.newsclient.adapter;
 
 import android.content.Context;
+import android.content.Intent;
 import android.support.v4.content.res.ConfigurationHelper;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -10,6 +11,7 @@ import android.widget.TextView;
 
 import com.gdcp.newsclient.R;
 import com.gdcp.newsclient.bean.JokeBean;
+import com.gdcp.newsclient.ui.activity.LiveActivity;
 
 import java.util.List;
 
@@ -37,6 +39,12 @@ public class JokeAdapter extends RecyclerView.Adapter<JokeAdapter.ViewHolder>{
         JokeBean.ResultBean resultBean=jokResultBeanList.get(position);
         holder.tvContent.setText(resultBean.getContent());
         holder.tvUpdateTime.setText(resultBean.getUpdatetime());
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                context.startActivity(new Intent(context, LiveActivity.class));
+            }
+        });
     }
 
     @Override

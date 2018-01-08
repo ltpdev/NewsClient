@@ -20,6 +20,8 @@ import com.gdcp.newsclient.R;
 import com.gdcp.newsclient.adapter.NewsViewPagerAdapter;
 import com.gdcp.newsclient.bean.AddItem;
 import com.gdcp.newsclient.bean.NewsBean;
+import com.gdcp.newsclient.event.DayNightEvent;
+import com.gdcp.newsclient.event.ItemSortEvent;
 import com.gdcp.newsclient.manager.URLManager;
 import com.gdcp.newsclient.ui.activity.AddItemActivity;
 import com.gdcp.newsclient.utils.XmlParseUtil;
@@ -33,6 +35,9 @@ import com.lidroid.xutils.http.ResponseInfo;
 import com.lidroid.xutils.http.callback.RequestCallBack;
 import com.lidroid.xutils.http.client.HttpRequest;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
@@ -63,6 +68,7 @@ public class MainFragment01 extends Fragment{
         if (mView==null){
             mView= LayoutInflater.from(getActivity()).inflate(R.layout.fragment_main01,container,false);
             initView(mView);
+            EventBus.getDefault().register(this);
         }
 
         return mView;
@@ -91,6 +97,8 @@ public class MainFragment01 extends Fragment{
         getData();
         newsViewPagerAdapter=new NewsViewPagerAdapter(getChildFragmentManager(),
                 fragments, titleList);
+
+
         viewPager.setAdapter(newsViewPagerAdapter);
         tabLayout.setupWithViewPager(viewPager);
 
@@ -144,8 +152,14 @@ T1348649654285   手机
     @Override
     public void onResume() {
         super.onResume();
-        getData();
-        newsViewPagerAdapter.notifyDataSetChanged();
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(ItemSortEvent event) {
+        if (event.isUpdate()){
+            getData();
+            newsViewPagerAdapter.notifyDataSetChanged();
+        }
     }
 
 

@@ -76,7 +76,7 @@
                 android:button="@null"
                 android:drawableTop="@drawable/selector_bg_tab02"
                 android:gravity="center"
-                android:text="阅读"
+                android:text="直播"
                 android:textColor="@drawable/selector_color_tab"
                 android:textSize="12sp" />
 
