@@ -236,6 +236,7 @@ public class LiveRoomActivity extends AppCompatActivity implements DanmuProcess.
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 if (fromUser){
                     audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, progress, 0);
+                    //
                 }
             }
 
