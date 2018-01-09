@@ -12,42 +12,50 @@
         android:scaleType="centerCrop"
         android:src="#11000000" />
     <TextView
+        android:layout_toLeftOf="@+id/film_pingfen"
         android:textSize="16sp"
         android:id="@+id/film_name"
-        android:layout_width="wrap_content"
+        android:singleLine="true"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignTop="@+id/iv_icon"
         android:layout_toRightOf="@+id/iv_icon"
         android:text="名字"
         />
     <TextView
+        android:layout_toLeftOf="@+id/film_pingfen"
+        android:singleLine="true"
         android:textSize="16sp"
         android:id="@+id/film_type"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/film_name"
         android:layout_toRightOf="@+id/iv_icon"
         android:text="类型"
         />
     <TextView
+        android:layout_toLeftOf="@+id/film_pingfen"
+        android:singleLine="true"
         android:textSize="16sp"
         android:id="@+id/film_act"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/film_type"
         android:layout_toRightOf="@+id/iv_icon"
         android:text="主演"
         />
     <TextView
+        android:singleLine="true"
         android:textSize="16sp"
         android:id="@+id/film_time"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/film_act"
         android:layout_toRightOf="@+id/iv_icon"
         android:text="上映时间"
         />
     <TextView
+        android:layout_marginLeft="10dp"
         android:textSize="16sp"
         android:id="@+id/film_pingfen"
         android:layout_width="wrap_content"
@@ -57,6 +65,7 @@
         android:text="9.7分"
         />
     <TextView
+        android:layout_marginLeft="10dp"
         android:textSize="16sp"
         android:id="@+id/film_buy"
         android:layout_width="wrap_content"

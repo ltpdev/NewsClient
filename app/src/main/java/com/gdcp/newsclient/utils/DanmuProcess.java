@@ -56,8 +56,15 @@ public class DanmuProcess{
                   dyBulletScreenClient.start(roomId, groupId);
                   dyBulletScreenClient.setHandMsgListener(new DyBulletScreenClient.HandMsgListener() {
                       @Override
-                      public void handleMessage(String txt) {
+                      public void handleDanMuMessage(String txt) {
                           addDanmaku(true, txt);
+                      }
+
+                      @Override
+                      public void handleListViewMessage(String name,String txt) {
+                          if (onDanmuDataComeListener!=null){
+                              onDanmuDataComeListener.refreshListView(name,txt);
+                          }
                       }
                   });
               }
@@ -79,9 +86,6 @@ public class DanmuProcess{
         danmaku.textColor = Color.WHITE;
         danmaku.setTime(danmakuView.getCurrentTime());
         danmakuView.addDanmaku(danmaku);
-        if (onDanmuDataComeListener!=null){
-            onDanmuDataComeListener.refreshListView(txt);
-        }
     }
 
     public void finish() {
@@ -162,7 +166,7 @@ public class DanmuProcess{
     }
 
     public interface OnDanmuDataComeListener{
-        void refreshListView(String data);
+        void refreshListView(String name, String data);
  }
 
 }

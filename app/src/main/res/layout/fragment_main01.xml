@@ -17,17 +17,20 @@
             android:id="@+id/tabLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_toLeftOf="@+id/add"
             app:tabIndicatorColor="@android:color/holo_red_dark"
             app:tabSelectedTextColor="@android:color/holo_red_dark"
             app:tabTextColor="@android:color/background_dark" />
 
         <ImageView
+            android:scaleType="centerCrop"
+            android:layout_marginRight="5dp"
             android:id="@+id/add"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
             android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
-            android:src="@drawable/add" />
+            android:src="@mipmap/menu" />
     </RelativeLayout>
 
     <android.support.v4.view.ViewPager

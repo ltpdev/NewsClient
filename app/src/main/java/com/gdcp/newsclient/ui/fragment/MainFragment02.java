@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.os.SystemClock;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
+import android.util.Log;
 import android.widget.EditText;
 
 import com.gdcp.newsclient.R;
@@ -28,6 +29,7 @@ import com.lidroid.xutils.http.client.HttpRequest;
 import java.util.ArrayList;
 import java.util.List;
 
+import fm.jiecao.jcvideoplayer_lib.JCVideoPlayerStandard;
 import master.flame.danmaku.danmaku.model.BaseDanmaku;
 import master.flame.danmaku.danmaku.model.android.DanmakuContext;
 import master.flame.danmaku.ui.widget.DanmakuView;
@@ -165,14 +167,35 @@ public class MainFragment02 extends BaseFragment implements SharedListener{
 
     }
 
+  /*  @Override
+    public void onBackPressed() {
+        if (JCVideoPlayerStandard.backPress()) {
+            return;
+        }
+        super.onBackPressed();
+    }*/
 
+    @Override
+    public void onPause() {
+        super.onPause();
+        Log.i("onPause","onPause");
+    }
 
+    @Override
+    public void onStop() {
+        super.onStop();
+        Log.i("onStop","onStop");
+    }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.i("onDestroy","onDestroy");
+    }
 
-
-
-
-
-
-
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        Log.i("onDestroyView","onDestroyView");
+    }
 }

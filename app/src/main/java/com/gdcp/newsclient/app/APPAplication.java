@@ -10,6 +10,8 @@ import com.gdcp.newsclient.callback.LoadingCallback;
 import com.gdcp.newsclient.config.AppConfig;
 import com.gdcp.newsclient.kuaichuan.entity.FileInfo;
 import com.kingja.loadsir.core.LoadSir;
+import com.tencent.bugly.Bugly;
+import com.tencent.bugly.crashreport.CrashReport;
 import com.tencent.smtt.sdk.QbSdk;
 
 import java.util.HashMap;
@@ -46,7 +48,8 @@ public class APPAplication extends Application {
 		this.appAplication=this;
 		//加载loadstr配置
 		loadConfig();
-
+		Bugly.init(getApplicationContext(), "c1fda080ce", true);
+		//CrashReport.initCrashReport(getApplicationContext(), "c1fda080ce", true);
 		appConfig = new AppConfig(getApplicationContext());
 		if (appConfig.isNightTheme()){
 			AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);

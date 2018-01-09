@@ -94,13 +94,11 @@ public class MainFragment01 extends Fragment{
     private void initViewPager() {
         fragments = new ArrayList<>();
         titleList= new ArrayList<>();
-        getData();
         newsViewPagerAdapter=new NewsViewPagerAdapter(getChildFragmentManager(),
                 fragments, titleList);
-
-
         viewPager.setAdapter(newsViewPagerAdapter);
         tabLayout.setupWithViewPager(viewPager);
+        getData();
 
     }
 
@@ -141,12 +139,11 @@ T1348649654285   手机
                 }
 
             }
+            newsViewPagerAdapter.notifyDataSetChanged();
         }else{
             //从网络获取ChannelId，标题，解析xml,转化为json格式
             getDataFromServer("http://c.m.163.com");
-
         }
-
     }
 
     @Override
@@ -158,7 +155,7 @@ T1348649654285   手机
     public void onMessageEvent(ItemSortEvent event) {
         if (event.isUpdate()){
             getData();
-            newsViewPagerAdapter.notifyDataSetChanged();
+            //newsViewPagerAdapter.notifyDataSetChanged();
         }
     }
 
@@ -190,6 +187,18 @@ T1348649654285   手机
         SharedPreferences.Editor editor = sharedPreferences.edit();
         Gson gson = new Gson();
         List<AddItem> list = new ArrayList<>();
+
+      /*  for (int i = 0; i < addItems.size(); i++) {
+            if (i <= 5){
+                NewsFragment fragment = new NewsFragment();
+                fragment.setChannelId(addItems.get(i).getChannelId());
+                fragments.add(fragment);
+                titleList.add(addItems.get(i).getTitle());
+            }else {
+                break;
+            }
+        }*/
+
         for (int i = 0; i < addItems.size(); i++) {
             if (i <= 5) {
                 AddItem addItem = new AddItem();
@@ -198,12 +207,13 @@ T1348649654285   手机
                 addItem.setTitle(addItems.get(i).getTitle());
                 list.add(addItem);
 //
-              /*  NewsFragment fragment = new NewsFragment();
+                NewsFragment fragment = new NewsFragment();
                 fragment.setChannelId(addItems.get(i).getChannelId());
                 fragments.add(fragment);
-                titleList.add(addItems.get(i).getTitle());*/
-
-
+                titleList.add(addItems.get(i).getTitle());
+                if (i==5){
+                    newsViewPagerAdapter.notifyDataSetChanged();
+                }
             } else {
                 AddItem addItem = new AddItem();
                 addItem.setAdded(false);
@@ -215,8 +225,9 @@ T1348649654285   手机
         }
         String json = gson.toJson(list);
         editor.putString("addItemList", json);
-        editor.commit();
+        editor.apply();
 
+        //getData();
 
     }
 

@@ -9,7 +9,7 @@ import java.io.Serializable;
 public class AddItem implements Serializable{
     private String title;
     private String channelId;
-    private boolean isAdded;
+    private boolean isAdded=false;
 
    /* public AddItem(String title, String channelId,boolean isAdded) {
         this.title = title;

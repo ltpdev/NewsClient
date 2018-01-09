@@ -1,5 +1,6 @@
 package com.gdcp.newsclient.kuaichuan.fragment;
 
+import android.annotation.SuppressLint;
 import android.app.Application;
 import android.content.Context;
 import android.os.AsyncTask;
@@ -47,6 +48,7 @@ public class FileInfoFragment extends Fragment {
 
     }
 
+    @SuppressLint("ValidFragment")
     public FileInfoFragment(int type) {
         this.mType = type;
     }

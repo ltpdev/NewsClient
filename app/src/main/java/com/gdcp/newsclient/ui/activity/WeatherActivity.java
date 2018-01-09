@@ -1,11 +1,16 @@
 package com.gdcp.newsclient.ui.activity;
 
+import android.Manifest;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.os.Build;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -72,8 +77,38 @@ public class WeatherActivity extends AppCompatActivity implements AMapLocationLi
         //初始化控件
         initView();
         initListener();
-        initLocationOption();
+        //檢查權限
+        checkPermissions();
 
+
+    }
+
+    private void checkPermissions() {
+        if (ContextCompat.checkSelfPermission(WeatherActivity.this,
+               Manifest.permission.ACCESS_COARSE_LOCATION)!= PackageManager.PERMISSION_GRANTED ||ContextCompat.checkSelfPermission(WeatherActivity.this,
+                Manifest.permission.ACCESS_FINE_LOCATION)!= PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(WeatherActivity.this,
+                    new String[]{Manifest.permission.ACCESS_COARSE_LOCATION,Manifest.permission.ACCESS_FINE_LOCATION},1001);
+
+        }else {
+            initLocationOption();
+        }
+    }
+
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+       switch (requestCode){
+           case 1001:
+               if (grantResults.length>0&&grantResults[0]==PackageManager.PERMISSION_GRANTED){
+                   initLocationOption();
+               }else {
+                   Toast.makeText(WeatherActivity.this,"請賦予定位權限后使用",Toast.LENGTH_SHORT).show();
+                   //finish();
+               }
+               break;
+               default:
+       }
     }
 
     private void initLocationOption() {
@@ -297,6 +332,8 @@ public class WeatherActivity extends AppCompatActivity implements AMapLocationLi
             } else {
                 //定位失败时，可通过ErrCode（错误码）信息来确定失败的原因，errInfo是错误信息，详见错误码表。
                 Toast.makeText(this, "定位失败"+aMapLocation.getErrorCode(), Toast.LENGTH_SHORT).show();
+                titleCity.setText("广州");
+                initData("广州");
             }
         }
     }

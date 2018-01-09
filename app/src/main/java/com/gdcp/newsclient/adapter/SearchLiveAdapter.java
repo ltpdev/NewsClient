@@ -3,6 +3,7 @@ package com.gdcp.newsclient.adapter;
 import android.content.Context;
 import android.content.Intent;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,6 +15,7 @@ import com.gdcp.newsclient.R;
 import com.gdcp.newsclient.bean.LiveBean;
 import com.gdcp.newsclient.bean.SearchLiveBean;
 import com.gdcp.newsclient.ui.activity.LiveRoomActivity;
+import com.gdcp.newsclient.utils.StringUtil;
 
 import java.util.List;
 
@@ -41,7 +43,7 @@ public class SearchLiveAdapter extends RecyclerView.Adapter<SearchLiveAdapter.Vi
         final SearchLiveBean.DataBean.RoomBean listBean=listBeans.get(position);
         holder.tvNick.setText(listBean.getNickname());
         holder.tvNum.setText(listBean.getHn()+"");
-        holder.tvTitle.setText(listBean.getRoom_name());
+        holder.tvTitle.setText(StringUtil.delHTMLTag(listBean.getRoom_name()));
         Glide.with(context).load(listBean.getRoomSrc()).into(holder.ivIcon);
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override

@@ -1,24 +1,26 @@
 package com.gdcp.newsclient.ui.activity;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.KeyEvent;
-import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.ArrayAdapter;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -26,11 +28,15 @@ import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.VideoView;
 
 import com.gdcp.newsclient.R;
+import com.gdcp.newsclient.adapter.MsgAdapter;
 import com.gdcp.newsclient.bean.HlsBean;
+import com.gdcp.newsclient.bean.Msg;
 import com.gdcp.newsclient.manager.DialogManager;
 import com.gdcp.newsclient.utils.DanmuProcess;
+import com.gdcp.newsclient.utils.StringUtil;
 import com.gdcp.newsclient.utils.ThreadUtil;
 import com.gdcp.newsclient.view.MyVideoView;
 import com.google.gson.Gson;
@@ -41,6 +47,7 @@ import com.lidroid.xutils.http.callback.RequestCallBack;
 import com.lidroid.xutils.http.client.HttpRequest;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -94,7 +101,7 @@ public class LiveRoomActivity extends AppCompatActivity implements DanmuProcess.
     float lastX = 0, lastY = 0;
     private float screenBrightness;
     private DialogManager dialogManager;
-    private ArrayAdapter<String> adapter ;
+    private MsgAdapter adapter ;
     private Handler uiHandler=new Handler(){
         @Override
         public void handleMessage(Message msg) {
@@ -126,7 +133,7 @@ public class LiveRoomActivity extends AppCompatActivity implements DanmuProcess.
     private String liveUrl;
     private String TAG="LiveRoomActivity";
     private String roomId;
-    private ArrayList<String> damuList;
+    private List<Msg> msgList;
     private boolean isLiveing=true;
     private HttpUtils utils;
 
@@ -150,11 +157,16 @@ public class LiveRoomActivity extends AppCompatActivity implements DanmuProcess.
         if (mDanmuProcess!=null){
             mDanmuProcess.finish();
         }
+        if (videoPlayer!=null){
+            videoPlayer.stopPlayback();
+            videoPlayer=null;
+        }
         isLiveing=false;
         danmakuView.release();
     }
     //重新请求数据
     private void retryRequstData() {
+        if (!isFinishing()){
         String url="https://m.douyu.com/html5/live?roomId="+roomId;
         Log.i(TAG, "roomid: "+getIntent().getStringExtra("roomid"));
         utils.send(HttpRequest.HttpMethod.GET,url, new RequestCallBack<String>() {
@@ -164,8 +176,10 @@ public class LiveRoomActivity extends AppCompatActivity implements DanmuProcess.
                 Gson gson=new Gson();
                 HlsBean hlsBean=gson.fromJson(json,HlsBean.class);
                 liveUrl=hlsBean.getData().getHls_url();
-                videoPlayer.pause();
-                videoPlayer.setVideoURI(Uri.parse(liveUrl));
+                if (videoPlayer!=null){
+                    videoPlayer.pause();
+                    videoPlayer.setVideoURI(Uri.parse(liveUrl));
+                }
                 Log.i("retryRequstData","再次请求数据成功");
             }
 
@@ -174,6 +188,8 @@ public class LiveRoomActivity extends AppCompatActivity implements DanmuProcess.
 
             }
         });
+
+        }
     }
 
     private void requstData() {
@@ -293,9 +309,9 @@ public class LiveRoomActivity extends AppCompatActivity implements DanmuProcess.
                         }else if (absDetlaX >threshold && absDetlaY < threshold){
                             isAdjust=false;
                             isSeekTo=true;
-                        }/*else if (absDetlaX<threshold && absDetlaY < threshold){
+                        }else if (absDetlaX<threshold && absDetlaY < threshold){
                             isAdjust=false;
-                        }*/
+                        }
                         if (isAdjust&&isFull) {
                         //判断手势合法后   区分手势调节音量,亮度
                         if (!dialogManager.isShowing()) {
@@ -321,16 +337,16 @@ public class LiveRoomActivity extends AppCompatActivity implements DanmuProcess.
                         }
 
                     }else {
-                            /*if (absDetlaX<absDetlaY) {
-                                changeVideoViewPosition(deltaX);
-                            }*/
-                        /*if (isHide){
+                            if (absDetlaX<absDetlaY) {
+                                //changeVideoViewPosition(deltaX);
+                            }
+                        if (isHide){
                             isHide=!isHide;
                             controlBarlayout.setVisibility(View.VISIBLE);
                         }else {
                             isHide=!isHide;
                             controlBarlayout.setVisibility(View.GONE);
-                        }*/
+                        }
                     }
 
                     if (isSeekTo){
@@ -409,16 +425,16 @@ public class LiveRoomActivity extends AppCompatActivity implements DanmuProcess.
         playDanMu();
         KeepLive keepLive=new KeepLive();
         ThreadUtil.executorService.execute(keepLive);
-        damuList=new ArrayList<>();
-        adapter= new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, damuList);
+        msgList=new ArrayList<>();
+        adapter= new MsgAdapter(this,msgList);
         listView.setAdapter(adapter);
         String title=getIntent().getStringExtra("title");
-        liveTitle.setText(title);
+        liveTitle.setText(StringUtil.delHTMLTag(title));
         dialogManager=new DialogManager(this);
         Uri videoUri = getIntent().getData();
         if (videoUri == null) { // 正常从当前应用的主界面跳转过来
             videoPlayer.setVideoURI(Uri.parse(liveUrl));
-            //videoPlayer.setVideoURI(Uri.parse("http://cdn.can.cibntv.net/12/201702161000/rexuechangan01/rexuechangan01.m3u8"));
+            //videoPlayer.setVideoURI(Uri.parse("http://gslb.miaopai.com/stream/oxX3t3Vm5XPHKUeTS-zbXA__.mp4"));
         } else {    // 从第三方应用跳转过来
             videoPlayer.setVideoURI(videoUri);
         }
@@ -433,7 +449,37 @@ public class LiveRoomActivity extends AppCompatActivity implements DanmuProcess.
         screen_height = getResources().getDisplayMetrics().heightPixels;
     }
 
+  /*  //檢查權限
+    private void checkPermissions() {
 
+        if (ContextCompat.checkSelfPermission(LiveRoomActivity.this,
+                Manifest.permission.RECORD_AUDIO)!= PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(LiveRoomActivity.this,
+                    new String[]{Manifest.permission.RECORD_AUDIO,},1003);
+            Toast.makeText(LiveRoomActivity.this,"no",Toast.LENGTH_SHORT).show();
+        }else {
+            Toast.makeText(LiveRoomActivity.this,"ok",Toast.LENGTH_SHORT).show();
+            initData();
+            //initEvent();
+        }
+    }*/
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode){
+            case 1003:
+                if (grantResults.length>0&&grantResults[0]==PackageManager.PERMISSION_GRANTED){
+                    Toast.makeText(LiveRoomActivity.this,"賦予了",Toast.LENGTH_SHORT).show();
+                    initData();
+                    //initEvent();
+                }else {
+                    Toast.makeText(LiveRoomActivity.this,"請賦予權限后使用",Toast.LENGTH_SHORT).show();
+                    //finish();
+                }
+                break;
+            default:
+        }
+    }
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if(keyCode==KeyEvent.KEYCODE_BACK){
@@ -545,11 +591,12 @@ public class LiveRoomActivity extends AppCompatActivity implements DanmuProcess.
     }
 
     @Override
-    public void refreshListView(final String data) {
+    public void refreshListView(final String name, final String data) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                damuList.add(data);
+                Msg msg=new Msg(name,data);
+                msgList.add(msg);
                 if (!isFull){
                     adapter.notifyDataSetChanged();
                 }

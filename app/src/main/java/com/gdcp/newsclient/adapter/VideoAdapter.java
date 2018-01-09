@@ -166,12 +166,14 @@ public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.ViewHolder>{
 
     private void addDanmaku(String content, final DanmakuView danmakuView, DanmakuContext danmakuContext) {
         BaseDanmaku danmaku = danmakuContext.mDanmakuFactory.createDanmaku(BaseDanmaku.TYPE_SCROLL_RL);
-        danmaku.text = content;
-        danmaku.padding = 5;
-        danmaku.textSize = sp2px(20);
-        danmaku.textColor = Color.WHITE;
-        danmaku.setTime(danmakuView.getCurrentTime());
-        danmakuView.addDanmaku(danmaku);
+        if (danmaku!=null){
+            danmaku.text = content;
+            danmaku.padding = 5;
+            danmaku.textSize = sp2px(20);
+            danmaku.textColor = Color.WHITE;
+            danmaku.setTime(danmakuView.getCurrentTime());
+            danmakuView.addDanmaku(danmaku);
+        }
     }
 
     private float sp2px(int spValue) {

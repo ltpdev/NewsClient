@@ -1,5 +1,9 @@
 package com.gdcp.newsclient.douyuDanmu.client;
 
+import android.graphics.Color;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 
 import com.gdcp.newsclient.douyuDanmu.msg.DyMessage;
@@ -48,7 +52,8 @@ public class DyBulletScreenClient{
     }
 
     public interface HandMsgListener{
-        void handleMessage(String txt);
+        void handleDanMuMessage(String txt);
+        void handleListViewMessage(String name,String txt);
 
     }
     private HandMsgListener handMsgListener;
@@ -206,10 +211,21 @@ public void start(int roomId,int groupId){
              //判断信息类型
              if (msg.get("type").equals("chatmsg")){//弹幕消息
                  if (!isHandleMsgListenerNull()){
-                     handMsgListener.handleMessage(msg.get("nn").toString()+":"+msg.get("txt").toString());
+                     handMsgListener.handleDanMuMessage(msg.get("nn").toString()+":"+msg.get("txt").toString());
+                     handMsgListener.handleListViewMessage(msg.get("nn").toString()+":",msg.get("txt").toString());
                  }
              }
+             if (msg.get("type").equals("uenter")){
+                 handMsgListener.handleListViewMessage(msg.get("nn").toString(),"进入直播间");
+             }
 
+             if (msg.get("type").equals("al")){//
+                 handMsgListener.handleListViewMessage("系统消息:","主播暂时离开。。。");
+             }
+
+             if (msg.get("type").equals("ab")){//
+                 handMsgListener.handleListViewMessage("系统消息:","主播回来继续直播！！！！");
+             }
              //@TODO 其他业务信息根据需要进行添加
 
 
