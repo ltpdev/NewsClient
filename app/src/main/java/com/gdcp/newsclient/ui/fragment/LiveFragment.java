@@ -1,6 +1,7 @@
 package com.gdcp.newsclient.ui.fragment;
 
 import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
 
 import com.gdcp.newsclient.R;
 import com.gdcp.newsclient.adapter.LiveAdapter;
@@ -10,6 +11,13 @@ import com.gdcp.newsclient.utils.PostUtil;
 import com.google.gson.Gson;
 import com.jcodecraeer.xrecyclerview.ProgressStyle;
 import com.jcodecraeer.xrecyclerview.XRecyclerView;
+import com.liaoinstan.springview.container.AcFunFooter;
+import com.liaoinstan.springview.container.AcFunHeader;
+import com.liaoinstan.springview.container.AliHeader;
+import com.liaoinstan.springview.container.DefaultFooter;
+import com.liaoinstan.springview.container.DefaultHeader;
+import com.liaoinstan.springview.container.MeituanHeader;
+import com.liaoinstan.springview.widget.SpringView;
 import com.lidroid.xutils.HttpUtils;
 import com.lidroid.xutils.exception.HttpException;
 import com.lidroid.xutils.http.ResponseInfo;
@@ -24,12 +32,15 @@ import java.util.List;
  */
 
 public class LiveFragment extends BaseFragment{
-    private XRecyclerView xRecyclerView;
+    private RecyclerView recyclerView;
     private LiveAdapter liveAdapter;
     private List<LiveBean.DataBean> listBeans;
-    private int num=0;
+    //private int num=0;
+    //是否数据添加到尾部的标志
+    private boolean isAddFoot=true;
     private boolean isFirstLoad=true;
     private String url;
+    private SpringView springView;
 
     @Override
     protected void reloadData() {
@@ -48,7 +59,8 @@ public class LiveFragment extends BaseFragment{
 
     @Override
     public void initView() {
-        xRecyclerView= (XRecyclerView) mView.findViewById(R.id.xRecyclerView);
+        recyclerView= (RecyclerView) mView.findViewById(R.id.recyclerView);
+        springView= (SpringView) mView.findViewById(R.id.springView);
     }
 
     @Override
@@ -57,38 +69,41 @@ public class LiveFragment extends BaseFragment{
         liveAdapter=new LiveAdapter(listBeans,getActivity());
         GridLayoutManager gridLayoutManager=new GridLayoutManager(getActivity(),2);
         //xRecyclerView.addItemDecoration(new GridDivider(getActivity(), 20, this.getResources().getColor(R.color.newsbg_color)));
-        xRecyclerView.setLayoutManager(gridLayoutManager);
-        xRecyclerView.setAdapter(liveAdapter);
+        recyclerView.setLayoutManager(gridLayoutManager);
+        recyclerView.setAdapter(liveAdapter);
         initListener();
         //获取直播数据
         getLiveDataList();
     }
 
     private void initListener() {
-        xRecyclerView.setRefreshProgressStyle(ProgressStyle.BallSpinFadeLoader);
-        xRecyclerView.setLoadingMoreProgressStyle(ProgressStyle.SquareSpin);
-        xRecyclerView.setLoadingListener(new XRecyclerView.LoadingListener() {
+        springView.setFooter(new DefaultFooter(getActivity()));
+        springView.setHeader(new MeituanHeader(getActivity()));
+        springView.setListener(new SpringView.OnFreshListener() {
             @Override
             public void onRefresh() {
-                listBeans.clear();
-                num=0;
+                //listBeans.clear();
+                //num=0;
+                isAddFoot=false;
                 getLiveDataList();
-                xRecyclerView.refreshComplete();
+                springView.onFinishFreshAndLoad();
             }
 
             @Override
-            public void onLoadMore() {
-                num=num+20;
+            public void onLoadmore() {
+                //num=num+20;
+                isAddFoot=true;
                 getLiveDataList();
-                xRecyclerView.loadMoreComplete();
+                springView.onFinishFreshAndLoad();
             }
         });
+        springView.setType(SpringView.Type.FOLLOW);
     }
 
     private void getLiveDataList() {
         HttpUtils utils = new HttpUtils();
         //final String url= "http://capi.douyucdn.cn/api/v1/live?&limit=20";
-        url=url+"&offset="+num;
+        url=url+"&offset="+listBeans.size();
         utils.send(HttpRequest.HttpMethod.GET,url, new RequestCallBack<String>() {
             @Override
             public void onSuccess(ResponseInfo<String> responseInfo) {
@@ -141,7 +156,11 @@ public class LiveFragment extends BaseFragment{
 
 
         for (int i = 0; i < liveBean.getData().size(); i++) {
-            listBeans.add(liveBean.getData().get(i));
+            if (isAddFoot){
+                listBeans.add(liveBean.getData().get(i));
+            }else {
+                listBeans.add(0,liveBean.getData().get(i));
+            }
         }
         liveAdapter.notifyDataSetChanged();
 

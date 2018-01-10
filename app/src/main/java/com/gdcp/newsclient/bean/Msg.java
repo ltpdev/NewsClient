@@ -28,4 +28,7 @@ public class Msg {
         this.title = title;
         this.txt = txt;
     }
+
+    public Msg() {
+    }
 }

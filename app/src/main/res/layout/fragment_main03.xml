@@ -6,10 +6,15 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context="com.gdcp.newsclient.ui.activity.MainActivity">
-<com.jcodecraeer.xrecyclerview.XRecyclerView
-    android:id="@+id/xRecyclerView"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-   />
 
+    <com.liaoinstan.springview.widget.SpringView
+        android:id="@+id/springView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/recyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </com.liaoinstan.springview.widget.SpringView>
 </LinearLayout>
