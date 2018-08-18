@@ -6,6 +6,7 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -34,11 +35,13 @@ import com.gdcp.newsclient.R;
 import com.gdcp.newsclient.adapter.MsgAdapter;
 import com.gdcp.newsclient.bean.HlsBean;
 import com.gdcp.newsclient.bean.Msg;
+import com.gdcp.newsclient.listener.VideoPlayerListener;
 import com.gdcp.newsclient.manager.DialogManager;
 import com.gdcp.newsclient.utils.DanmuProcess;
 import com.gdcp.newsclient.utils.StringUtil;
 import com.gdcp.newsclient.utils.ThreadUtil;
 import com.gdcp.newsclient.view.MyVideoView;
+import com.gdcp.newsclient.view.VideoPlayerIJK;
 import com.google.gson.Gson;
 import com.lidroid.xutils.HttpUtils;
 import com.lidroid.xutils.exception.HttpException;
@@ -52,15 +55,14 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import io.vov.vitamio.LibsChecker;
-import io.vov.vitamio.MediaPlayer;
-import io.vov.vitamio.Vitamio;
 import master.flame.danmaku.controller.IDanmakuView;
+import tv.danmaku.ijk.media.player.IMediaPlayer;
+import tv.danmaku.ijk.media.player.IjkMediaPlayer;
 
 public class LiveRoomActivity extends AppCompatActivity implements DanmuProcess.OnDanmuDataComeListener{
     private static final int UPDATE_UI = 1;
     @BindView(R.id.videoPlayer)
-    MyVideoView videoPlayer;
+    VideoPlayerIJK videoPlayer;
     @BindView(R.id.lock_img)
     ImageView lockImg;
     @BindView(R.id.pause)
@@ -91,6 +93,8 @@ public class LiveRoomActivity extends AppCompatActivity implements DanmuProcess.
     IDanmakuView danmakuView;
     @BindView(R.id.listview)
     ListView listView;
+    @BindView(R.id.rl_loading)
+    RelativeLayout rlLoading;
     private DanmuProcess mDanmuProcess;
     private boolean isFull=false;
     private int screen_width;
@@ -142,14 +146,16 @@ public class LiveRoomActivity extends AppCompatActivity implements DanmuProcess.
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_live_room);
-        Vitamio.initialize(this);
-        //设置视频解码监听
-        if (!LibsChecker.checkVitamioLibs(this)) {
-            return;
-        }
         ButterKnife.bind(this);
+        try {
+            IjkMediaPlayer.loadLibrariesOnce(null);
+            IjkMediaPlayer.native_profileBegin("libijkplayer.so");
+        } catch (Exception e) {
+            this.finish();
+        }
         requstData();
     }
+
 
     @Override
     protected void onDestroy() {
@@ -158,7 +164,7 @@ public class LiveRoomActivity extends AppCompatActivity implements DanmuProcess.
             mDanmuProcess.finish();
         }
         if (videoPlayer!=null){
-            videoPlayer.stopPlayback();
+            videoPlayer.release();
             videoPlayer=null;
         }
         isLiveing=false;
@@ -167,6 +173,7 @@ public class LiveRoomActivity extends AppCompatActivity implements DanmuProcess.
     //重新请求数据
     private void retryRequstData() {
         if (!isFinishing()){
+            rlLoading.setVisibility(View.VISIBLE);
         String url="https://m.douyu.com/html5/live?roomId="+roomId;
         Log.i(TAG, "roomid: "+getIntent().getStringExtra("roomid"));
         utils.send(HttpRequest.HttpMethod.GET,url, new RequestCallBack<String>() {
@@ -178,7 +185,7 @@ public class LiveRoomActivity extends AppCompatActivity implements DanmuProcess.
                 liveUrl=hlsBean.getData().getHls_url();
                 if (videoPlayer!=null){
                     videoPlayer.pause();
-                    videoPlayer.setVideoURI(Uri.parse(liveUrl));
+                    videoPlayer.setVideoPath(liveUrl);
                 }
                 Log.i("retryRequstData","再次请求数据成功");
             }
@@ -217,36 +224,6 @@ public class LiveRoomActivity extends AppCompatActivity implements DanmuProcess.
     }
 
     private void initEvent() {
-        videoPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-            @Override
-            public void onPrepared(MediaPlayer mp) {
-                videoPlayer.start();
-                uiHandler.sendEmptyMessage(UPDATE_UI);
-                uiHandler.sendEmptyMessageDelayed(2,5000);
-            }
-        });
-
-        videoPlayer.setOnErrorListener(new MediaPlayer.OnErrorListener() {
-            @Override
-            public boolean onError(MediaPlayer mp, int what, int extra) {
-                Log.i("onError","播放错误");
-                return false;
-            }
-        });
-        videoPlayer.setOnInfoListener(new MediaPlayer.OnInfoListener() {
-            @Override
-            public boolean onInfo(MediaPlayer mp, int what, int extra) {
-                switch(what){
-                    case MediaPlayer.MEDIA_INFO_VIDEO_TRACK_LAGGING:
-                        break;
-                    case MediaPlayer.MEDIA_INFO_NOT_SEEKABLE:
-
-                        break;
-                }
-                return false;
-            }
-        });
-
         voiceSeeBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -266,6 +243,58 @@ public class LiveRoomActivity extends AppCompatActivity implements DanmuProcess.
 
             }
         });
+
+        videoPlayer.setListener(new VideoPlayerListener() {
+            @Override
+            public void onBufferingUpdate(IMediaPlayer mp, int percent) {
+
+            }
+
+            @Override
+            public void onCompletion(IMediaPlayer mp) {
+
+            }
+
+            @Override
+            public boolean onError(IMediaPlayer mp, int what, int extra) {
+                return false;
+            }
+
+            @Override
+            public boolean onInfo(IMediaPlayer mp, int what, int extra) {
+                switch(what){
+                    //MEDIA_INFO_DOWNLOAD_RATE_CHANGED
+                    case IMediaPlayer.MEDIA_INFO_VIDEO_RENDERING_START :
+                    case IMediaPlayer.MEDIA_INFO_BUFFERING_START:
+                        rlLoading.setVisibility(View.VISIBLE);
+                        break;
+                    case IMediaPlayer.MEDIA_INFO_BUFFERING_END:
+                    case IMediaPlayer.MEDIA_INFO_VIDEO_TRACK_LAGGING:
+                    case IMediaPlayer.MEDIA_INFO_VIDEO_ROTATION_CHANGED:
+                        rlLoading.setVisibility(View.GONE);
+                        break;
+                }
+                return false;
+            }
+
+            @Override
+            public void onPrepared(IMediaPlayer mp) {
+                videoPlayer.start();
+                uiHandler.sendEmptyMessage(UPDATE_UI);
+                uiHandler.sendEmptyMessageDelayed(2,5000);
+            }
+
+            @Override
+            public void onSeekComplete(IMediaPlayer mp) {
+
+            }
+
+            @Override
+            public void onVideoSizeChanged(IMediaPlayer mp, int width, int height, int sar_num, int sar_den) {
+                //获取到视频的宽和高
+            }
+        });
+
         videoPlayer.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -433,10 +462,10 @@ public class LiveRoomActivity extends AppCompatActivity implements DanmuProcess.
         dialogManager=new DialogManager(this);
         Uri videoUri = getIntent().getData();
         if (videoUri == null) { // 正常从当前应用的主界面跳转过来
-            videoPlayer.setVideoURI(Uri.parse(liveUrl));
+            videoPlayer.setVideoPath(liveUrl);
             //videoPlayer.setVideoURI(Uri.parse("http://gslb.miaopai.com/stream/oxX3t3Vm5XPHKUeTS-zbXA__.mp4"));
         } else {    // 从第三方应用跳转过来
-            videoPlayer.setVideoURI(videoUri);
+            videoPlayer.setVideoPath(null);
         }
         audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
         //获取当前设备最大音量值
@@ -545,6 +574,7 @@ public class LiveRoomActivity extends AppCompatActivity implements DanmuProcess.
     protected void onStop() {
         super.onStop();
         uiHandler.removeMessages(UPDATE_UI);
+        IjkMediaPlayer.native_profileEnd();
     }
 
 

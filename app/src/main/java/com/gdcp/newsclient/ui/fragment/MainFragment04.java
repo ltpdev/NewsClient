@@ -2,6 +2,7 @@ package com.gdcp.newsclient.ui.fragment;
 
 import android.content.Intent;
 import android.os.SystemClock;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
@@ -117,12 +118,18 @@ public class MainFragment04 extends BaseFragment{
                     isFirstLoad=false;
                 }
                 String json = responseInfo.result;
+                Log.i("josn",json);
                 DiskLruCacheUtils diskLruCacheUtils=new DiskLruCacheUtils(getActivity());
                 diskLruCacheUtils.inputDiskCache(url,json);
                 Gson gson=new Gson();
-                FilmBean filmBean=gson.fromJson(json,FilmBean.class);
-                // 显示服务器数据
-                showData(filmBean);
+                try {
+                    FilmBean filmBean=gson.fromJson(json,FilmBean.class);
+                    // 显示服务器数据
+                    showData(filmBean);
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+
             }
 
             @Override

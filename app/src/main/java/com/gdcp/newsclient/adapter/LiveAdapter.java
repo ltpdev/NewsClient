@@ -11,9 +11,7 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.gdcp.newsclient.R;
-import com.gdcp.newsclient.bean.Actor;
 import com.gdcp.newsclient.bean.LiveBean;
-import com.gdcp.newsclient.ui.activity.LiveActivity;
 import com.gdcp.newsclient.ui.activity.LiveRoomActivity;
 
 import java.util.List;

@@ -5,11 +5,32 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
     <RelativeLayout
-        android:background="@color/colorAccent"
         android:id="@+id/total_relative"
         android:layout_width="match_parent"
         android:layout_height="200dp">
-        <com.gdcp.newsclient.view.MyVideoView
+        <RelativeLayout
+            android:id="@+id/rl_loading"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#de262a3b">
+
+            <ProgressBar
+                android:id="@+id/progressBar"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_centerInParent="true"
+                android:indeterminate="false" />
+
+            <TextView
+                android:id="@+id/tv_loading"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/progressBar"
+                android:layout_centerHorizontal="true"
+                android:text="正在加载...."
+                android:textColor="#fff" />
+        </RelativeLayout>
+        <com.gdcp.newsclient.view.VideoPlayerIJK
             android:layout_centerHorizontal="true"
             android:id="@+id/videoPlayer"
             android:layout_width="match_parent"

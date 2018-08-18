@@ -107,7 +107,7 @@
         <activity android:name=".kuaichuan.ui.FileSenderActivity" />
         <activity android:name=".kuaichuan.ui.ReceiverWaitingActivity" />
         <activity android:name=".kuaichuan.ui.FileReceiverActivity" />
-        <activity android:name=".ui.activity.LiveActivity" />
+
         <activity
             android:name=".ui.activity.LiveRoomActivity"
             android:configChanges="orientation|screenSize|keyboard|keyboardHidden"
@@ -141,12 +141,7 @@
                 <data android:mimeType="video/3gpp2" />
             </intent-filter>
         </activity>
-        <activity
-            android:name="io.vov.vitamio.activity.InitActivity"
-            android:configChanges="orientation|screenSize|smallestScreenSize|keyboard|keyboardHidden|navigation"
-            android:launchMode="singleTop"
-            android:theme="@android:style/Theme.NoTitleBar"
-            android:windowSoftInputMode="stateAlwaysHidden" />
+
         <activity
             android:name=".ui.activity.SearchActivity"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />

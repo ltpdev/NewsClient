@@ -4,8 +4,8 @@ import android.content.Context;
 import android.media.MediaPlayer;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.widget.VideoView;
 
-import io.vov.vitamio.widget.VideoView;
 
 /**
  * Created by Administrator on 2017/10/26 0026.
